@@ -126,7 +126,37 @@ class PaperSearchEngine:
             if self.kw_model is not None:
                 r["keywords"] = self.extract_keywords(r["abstract"])
         return results
+    def recommend_papers(self, paper_index: int, top_n: int = 5) -> list[dict]:
+        """
+        Recommend papers similar to a selected paper.
+        """
+        embedding = self.embed_model.encode(
+            [self.df.iloc[paper_index]["paper_text"]]
+        )
 
+        faiss.normalize_L2(embedding)
+
+        scores, indices = self.index.search(embedding, top_n + 1)
+
+        recommendations = []
+
+        for score, idx in zip(scores[0], indices[0]):
+
+            if idx == paper_index:
+                continue
+
+            row = self.df.iloc[idx]
+
+            recommendations.append({
+                "title": row["title"],
+                "abstract": row["abstract"],
+                "score": float(score)
+            })
+
+            if len(recommendations) >= top_n:
+                break
+
+        return recommendations
 
 if __name__ == "__main__":
     engine = PaperSearchEngine()
