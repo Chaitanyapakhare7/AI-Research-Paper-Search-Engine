@@ -117,7 +117,3 @@ Features included:
 Walchand College of Engineering, Sangli
 
 ---
-
-## 📄 License
-
-This project is developed for educational purposes.
