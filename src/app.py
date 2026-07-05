@@ -1,98 +1,61 @@
 """
-app.py
-------
-Streamlit front-end for the AI Research Paper Intelligence System.
-
-Run with:
-    streamlit run src/app.py
+search_engine.py
+----------------
+Mock implementation of the PaperSearchEngine backend.
+You can swap the mock data and functions out for real models later!
 """
+import random
 
-import streamlit as st
-from search_engine import PaperSearchEngine
+class PaperSearchEngine:
+    def __init__(self):
+        # Setting up some realistic mock database papers to test your UI changes
+        self.mock_papers = [
+            {
+                "title": "Attention Is All You Need",
+                "abstract": "The dominant sequence transduction models are based on complex recurrent or convolutional neural networks...",
+                "row_index": 0
+            },
+            {
+                "title": "BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding",
+                "abstract": "We introduce a new language representation model called BERT, which stands for Bidirectional Encoder Representations from Transformers...",
+                "row_index": 1
+            },
+            {
+                "title": "Generative Adversarial Nets",
+                "abstract": "We propose a new framework for estimating generative models via an adversarial process, in which we simultaneously train two models...",
+                "row_index": 2
+            }
+        ]
 
-st.set_page_config(
-    page_title="AI Research Paper Intelligence System",
-    page_icon="📚",
-    layout="wide",
-)
+    def search(self, query: str, k: int = 5):
+        """Simulates FAISS vector search."""
+        results = []
+        # Cycle through mock data if k is larger than our mock dataset
+        for i in range(k):
+            paper = self.mock_papers[i % len(self.mock_papers)]
+            results.append({
+                "rank": i + 1,
+                "title": f"{paper['title']} (Result variant {i+1})",
+                "abstract": paper["abstract"],
+                "score": random.uniform(0.75, 0.98),
+                "row_index": paper["row_index"]
+            })
+        return results
 
+    def summarize(self, abstract: str) -> str:
+        """Simulates BART summarization."""
+        return f"This paper explores a novel approach optimizing deep network architectures, shortening training times significantly."
 
-@st.cache_resource(show_spinner="Loading models and index (first run only)...")
-def get_engine():
-    return PaperSearchEngine()
+    def extract_keywords(self, abstract: str):
+        """Simulates KeyBERT keyword extraction."""
+        return [("transformers", 0.92), ("neural networks", 0.88), ("deep learning", 0.81)]
 
-
-# ---------------------------------------------------------------------- #
-# Header
-# ---------------------------------------------------------------------- #
-st.title("📚 AI Research Paper Intelligence System")
-st.caption(
-    "Semantic search over 50,000 ArXiv Machine Learning papers — "
-    "powered by Sentence-Transformers, FAISS, BART and KeyBERT."
-)
-
-with st.sidebar:
-    st.header("⚙️ Settings")
-    top_k = st.slider("Number of results", min_value=1, max_value=10, value=5)
-    show_summary = st.checkbox("Generate AI summary", value=True)
-    show_keywords = st.checkbox("Extract keywords", value=True)
-    st.markdown("---")
-    st.markdown(
-        "**How it works**\n\n"
-        "1. Your query is embedded with `all-MiniLM-L6-v2`\n"
-        "2. FAISS finds the closest papers by cosine similarity\n"
-        "3. BART summarizes each abstract\n"
-        "4. KeyBERT extracts the key phrases"
-    )
-
-query = st.text_input(
-    "🔍 Search research papers",
-    placeholder="e.g. deep learning for medical image analysis",
-)
-
-search_clicked = st.button("Search", type="primary")
-
-if search_clicked and query.strip():
-    engine = get_engine()
-    with st.spinner("Searching and analyzing papers..."):
-        results = engine.search(query, k=top_k)
-        for r in results:
-            if show_summary:
-                r["summary"] = engine.summarize(r["abstract"])
-            if show_keywords:
-                r["keywords"] = engine.extract_keywords(r["abstract"])
-
-    st.success(f"Found {len(results)} relevant papers")
-
-    for r in results:
-        with st.container(border=True):
-            col1, col2 = st.columns([5, 1])
-            with col1:
-                st.subheader(f"{r['rank']}. {r['title']}")
-            with col2:
-                st.metric("Similarity", f"{r['score']:.2f}")
-
-            if show_summary and "summary" in r:
-                st.markdown(f"**🧠 AI Summary:** {r['summary']}")
-
-            with st.expander("View full abstract"):
-                st.write(r["abstract"])
-            # Paper Recommendations
-            recommendations = engine.recommend_papers(
-                r["row_index"], top_n=3
-            )
-
-            with st.expander("📚 Recommended Papers"):
-                for rec in recommendations:
-                    st.markdown(f"**{rec['title']}**")
-                    st.caption(f"Similarity Score: {rec['score']:.2f}")
-            if show_keywords and "keywords" in r:
-                kw_tags = "  ".join(
-                    f"`{kw}` ({score:.2f})" for kw, score in r["keywords"]
-                )
-                st.markdown(f"**🏷️ Keywords:** {kw_tags}")
-
-elif search_clicked:
-    st.warning("Please enter a search query.")
-else:
-    st.info("Enter a query above and click **Search** to explore the paper database.")
+    def recommend_papers(self, row_index: int, top_n: int = 3):
+        """Simulates vector recommendations based on index."""
+        recommendations = []
+        for i in range(top_n):
+            recommendations.append({
+                "title": f"Related Discovery Paper {i+1} for Index {row_index}",
+                "score": random.uniform(0.60, 0.85)
+            })
+        return recommendations
