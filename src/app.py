@@ -77,7 +77,15 @@ if search_clicked and query.strip():
 
             with st.expander("View full abstract"):
                 st.write(r["abstract"])
+            # Paper Recommendations
+            recommendations = engine.recommend_papers(
+                r["row_index"], top_n=3
+            )
 
+            with st.expander("📚 Recommended Papers"):
+                for rec in recommendations:
+                    st.markdown(f"**{rec['title']}**")
+                    st.caption(f"Similarity Score: {rec['score']:.2f}")
             if show_keywords and "keywords" in r:
                 kw_tags = "  ".join(
                     f"`{kw}` ({score:.2f})" for kw, score in r["keywords"]
